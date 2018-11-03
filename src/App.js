@@ -28,7 +28,8 @@ class App extends Component {
       mathArray : mathArray,
       index : 0,
       score : 0,
-      showScore : false
+      showScore : false,
+      errors : []
     };
     // this.startGenterMathQuestions();
   }
@@ -56,8 +57,12 @@ class App extends Component {
     this.timer = setTimeout( () =>{
       if(index < this.state.mathArray.length - 1){
         index++;
+        let errors = this.state.errors;
+        let s = this.state.mathArray[index];
+        errors.push({s : s});
         this.setState({
-            index : index
+            index : index,
+            errors : errors
         })
       }else{
         clearTimeout(this.timer)
@@ -71,6 +76,9 @@ class App extends Component {
 
   calc(){
     let v = this.result.value;
+
+    if(v==''){return;}
+
     let index = this.state.index;
     let s = this.state.mathArray[index];
     let score = this.state.score;
@@ -96,8 +104,11 @@ class App extends Component {
     }else{
       if(index < this.state.mathArray.length -1){
         index++;
+        let errors = this.state.errors;
+        errors.push({s : s, v : v});
         this.setState({
-          index : index
+          index : index,
+          errors : errors
         },() => {
           this.result.value = '';
           this.start();
@@ -116,8 +127,6 @@ class App extends Component {
 
   render() {
     let s = this.state.mathArray[this.state.index];
-
-    console.log(this.state.index);
     return (
       <div className="App">
         <header>Jonan的数学训练</header>
@@ -125,7 +134,7 @@ class App extends Component {
           {s && this.state.start ? [<div className="score" key="score">第{this.state.index+1}/{this.state.mathArray.length}题</div>,<div className="content" key="content">
             <div className="formula">{s.a} {s.c === 0 ?  '+' : null} {s.c === 1 ?  '-' : null} {s.b} = ?</div>
             <div className="answer">
-              <input type="tel" ref={this.setTextInputRef}/><button onClick={this.calc.bind(this)}>计算</button>
+              <input type="tel" ref={this.setTextInputRef}/><button onClick={this.calc.bind(this)}>提交</button>
             </div>
           </div>]:null}
 
@@ -133,7 +142,18 @@ class App extends Component {
           {!this.state.start ? [<div className="start" onClick={this.start.bind(this)} key="start">开始做题</div>,
           <div className="miss" key="miss">错题库</div>] : null }
         
-          {this.state.showScore ? <div className="result">本次共做对了{this.state.score}/{this.state.mathArray.length} <br/><button onClick={this.reload.bind(this)}>再来一次</button></div> : null}
+          {this.state.showScore ? 
+            <div className="result">
+              <div>本次共做对了{this.state.score}/{this.state.mathArray.length} </div>
+              <button onClick={this.reload.bind(this)}>再来一次</button>
+              <div className="errors">
+                <ul>
+                {this.state.errors.map( (el,index) => {
+                  return <li key={'error_' + index }>{el.s.a} {el.s.c === 0 ?  '+' : null} {el.s.c === 1 ?  '-' : null}  {el.s.b} {el.v ? '=' + el.v : '' } ?</li>
+                } )}
+                </ul>
+              </div>
+            </div> : null}
           
       </div>
     );
